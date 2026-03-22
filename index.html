@@ -1889,21 +1889,21 @@ select.filter-select option { background: var(--black2); }
   align-items: flex-start;
   margin-bottom: 32px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #c9a84c;
+  border-top: 2px solid #c9a84c; border-bottom: none;
 }
-.invoice-logo { font-size: 32px; font-weight: 900; letter-spacing: 0.2em; color: #f0ede8; }
-.invoice-logo span { color: #3b82f6; }
-.invoice-tagline { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; }
-.invoice-meta { text-align: right; }
-.invoice-num { font-size: 20px; font-weight: 700; color: #3b82f6; }
+.invoice-logo { font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 0.2em; color: #111; line-height: 1; }
+.invoice-logo span { color: #c9a84c; }
+.invoice-tagline { font-size: 9px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; margin-top: 4px; }
+.invoice-meta { text-align: right; flex-shrink: 0; margin-left: 16px; }
+.invoice-num { font-size: 16px; font-weight: 700; color: #c9a84c; letter-spacing: 0.1em; }
 .invoice-date { font-size: 12px; color: #666; margin-top: 4px; }
 .invoice-addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 28px; }
-.invoice-addr-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #3b82f6; margin-bottom: 8px; font-weight: 700; }
+.invoice-addr-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #c9a84c; margin-bottom: 8px; font-weight: 700; font-family: Arial, sans-serif; }
 .invoice-addr p { font-size: 13px; color: #333; margin-bottom: 3px; line-height: 1.6; }
 .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
 .invoice-table th {
   background: #0d0d0d;
-  color: #3b82f6;
+  color: #c9a84c;
   padding: 10px 14px;
   text-align: left;
   font-size: 11px;
@@ -1929,8 +1929,8 @@ select.filter-select option { background: var(--black2); }
 .invoice-total-row.grand {
   font-size: 16px;
   font-weight: 700;
-  color: #3b82f6;
-  border-bottom: 2px solid #c9a84c;
+  color: #111;
+  border-top: 2px solid #c9a84c; border-bottom: none;
   padding-top: 10px;
   margin-top: 6px;
 }
@@ -3554,10 +3554,10 @@ select.filter-select option { background: #fff !important; color: #111 !importan
       <div class="admin-login-logo">SHOEMOB</div>
       <div class="admin-login-sub">Admin Dashboard</div>
       <div class="contact-form">
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="admin-email" placeholder="shoemobindia@gmail.com" value="shoemobindia@gmail.com"></div>
-        <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="admin-password" placeholder="••••••••" value="#shoemob2026"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="admin-email" placeholder="Enter admin email"></div>
+        <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="admin-password" placeholder="Enter password"></div>
         <button class="btn-primary" onclick="adminLogin()" style="width:100%;margin-top:8px">Login to Dashboard ›</button>
-        <p style="font-size:11px;color:var(--gray);text-align:center;margin-top:12px">Demo: shoemobindia@gmail.com / #shoemob2026</p>
+        <p style="font-size:11px;color:var(--gray);text-align:center;margin-top:12px">SHOEMOB Admin Panel</p>
       </div>
     </div>
   </div>
@@ -3633,7 +3633,18 @@ select.filter-select option { background: #fff !important; color: #111 !importan
             <div class="form-group"><label class="form-label">Stock Quantity</label><input type="number" class="form-input" id="prod-stock" placeholder="50" value="50"></div>
             <div class="form-group full"><label class="form-label">Description</label><textarea class="form-textarea" id="prod-desc" placeholder="Premium quality product..."></textarea></div>
             <div class="form-group full"><label class="form-label">Sizes (comma separated)</label><input type="text" class="form-input" id="prod-sizes" placeholder="6,7,8,9,10,11 or S,M,L,XL or One Size"></div>
-            <div class="form-group full"><label class="form-label">Product Emoji / Image URL</label><input type="text" class="form-input" id="prod-emoji" placeholder="👟 or https://...image.jpg"></div>
+            <div class="form-group full">
+              <label class="form-label">Product Photo</label>
+              <input type="file" id="prod-image-file" accept="image/*" style="display:none" onchange="handleProductImageUpload(this)">
+              <div class="image-upload-area" onclick="document.getElementById('prod-image-file').click()" id="image-upload-area">
+                <div id="image-upload-preview-wrap">
+                  <div class="image-upload-icon">📷</div>
+                  <div class="image-upload-text">Tap to choose photo from gallery</div>
+                  <div class="image-upload-hint">JPG, PNG, WEBP supported</div>
+                </div>
+              </div>
+              <input type="hidden" id="prod-emoji">
+            </div>
             <div class="form-group full">
               <label class="form-label">Best Seller</label>
               <label class="toggle-switch">
@@ -4298,7 +4309,10 @@ function renderProductCard(p) {
   p.emoji = (p.emoji || '🛍').toString();
   const inWishlist = wishlist.includes(p.id);
   const isUrl = p.emoji.startsWith('http') || p.emoji.startsWith('/');
-  const imgContent = isUrl ? `<img src="${p.emoji}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : `<span class="product-emoji">${p.emoji}</span>`;
+  const catEmoji = p.category?.includes('Shoe') || p.category?.includes('Sneaker') || p.category?.includes('Leather') || p.category?.includes('Street') ? '👟' : p.category?.includes('Earbud') || p.category?.includes('Wireless') ? '🎧' : p.category?.includes('Charger') || p.category?.includes('Cable') ? '🔌' : p.category?.includes('Watch') || p.category?.includes('Smart') ? '⌚' : p.category?.includes('Phone') || p.category?.includes('Case') ? '📱' : '🛍';
+  const imgContent = isUrl
+    ? `<img src="${p.emoji}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class='product-emoji' style='display:none'>${catEmoji}</span>`
+    : `<span class="product-emoji">${p.emoji}</span>`;
   const badge = p.badge ? `<div class="product-badge ${p.badge}">${p.badge.toUpperCase()}</div>` : '';
   const origPrice = p.originalPrice ? `<span class="product-price-original">₹${p.originalPrice.toLocaleString()}</span>` : '';
   return `<div class="product-card" onclick="openProductModal('${p.id}')">
@@ -4345,9 +4359,14 @@ function openProductModal(productId, fromPage) {
 
   const inWishlist = wishlist.includes(p.id);
   const isUrl = p.emoji.startsWith('http') || p.emoji.startsWith('/');
+  const fallbackEmoji = p.category.includes('Shoe') || p.category.includes('Sneaker') || p.category.includes('Leather') || p.category.includes('Street') ? '👟' : p.category.includes('Earbud') || p.category.includes('Wireless') ? '🎧' : p.category.includes('Charger') || p.category.includes('Cable') ? '🔌' : p.category.includes('Watch') || p.category.includes('Smart') ? '⌚' : p.category.includes('Phone') || p.category.includes('Case') ? '📱' : '🛍';
   const mainImg = isUrl
-    ? `<img src="${p.emoji}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">`
-    : `<span class="pdp-main-emoji">${p.emoji}</span>`;
+    ? `<img src="${p.emoji}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    + `<span class="pdp-main-emoji" style="display:none">${fallbackEmoji}</span>`
+    : `<span class="pdp-main-emoji">${p.emoji || fallbackEmoji}</span>`;
+  const thumbImg = isUrl
+    ? `<img src="${p.emoji}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\"font-size:24px\\">${fallbackEmoji}</span>'">`
+    : `<span style="font-size:26px">${p.emoji || fallbackEmoji}</span>`;
 
   const discount = p.originalPrice
     ? Math.round((1 - p.price/p.originalPrice)*100) : 0;
@@ -4390,10 +4409,10 @@ function openProductModal(productId, fromPage) {
         </div>
         <div class="pdp-thumbs">
           <div class="pdp-thumb active" onclick="pdpSelectThumb(this,'${p.emoji}','${p.id}')">
-            ${isUrl ? `<img src="${p.emoji}" alt="">` : `<span style="font-size:26px">${p.emoji}</span>`}
+            ${thumbImg}
           </div>
           ${[2,3,4].map(i=>`<div class="pdp-thumb" onclick="pdpSelectThumb(this,'${p.emoji}','${p.id}')">
-            ${isUrl ? `<img src="${p.emoji}" alt="">` : `<span style="font-size:26px">${p.emoji}</span>`}
+            ${thumbImg}
           </div>`).join('')}
         </div>
       </div>
@@ -4466,7 +4485,7 @@ function openProductModal(productId, fromPage) {
         <!-- Trust badges -->
         <div class="pdp-trust-badges">
           <div class="pdp-trust-badge"><span class="icon">🚚</span><div><strong>Free Delivery</strong>On orders above ₹999</div></div>
-          <div class="pdp-trust-badge"><span class="icon">↩️</span><div><strong>Easy Returns</strong>7-day return policy</div></div>
+          <div class="pdp-trust-badge"><span class="icon">🔄</span><div><strong>Easy Exchange</strong>7-day exchange policy</div></div>
           <div class="pdp-trust-badge"><span class="icon">✅</span><div><strong>Genuine</strong>100% authentic product</div></div>
           <div class="pdp-trust-badge"><span class="icon">🔒</span><div><strong>Secure</strong>Safe checkout</div></div>
         </div>
@@ -5521,16 +5540,44 @@ function updateOrderStatus(orderId) {
 }
 
 // ============ PRODUCT MANAGEMENT ============
+// ============ PRODUCT IMAGE UPLOAD ============
+function handleProductImageUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024) {
+    showToast('Image too large! Max 5MB', 'error', '✕');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    document.getElementById('prod-emoji').value = base64;
+    // Show preview
+    const area = document.getElementById('image-upload-area');
+    const wrap = document.getElementById('image-upload-preview-wrap');
+    if(area && wrap) {
+      wrap.innerHTML = `
+        <div style="position:relative;display:inline-block">
+          <img src="${base64}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #111">
+          <div style="margin-top:10px;font-size:12px;color:#38a169;font-weight:600">✓ Photo selected</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Tap to change</div>
+        </div>`;
+    }
+    showToast('Photo ready! ✓', 'success', '📷');
+  };
+  reader.readAsDataURL(file);
+}
+
 function saveProduct() {
-  const name = document.getElementById('prod-name').value.trim();
-  const price = parseFloat(document.getElementById('prod-price').value);
+  const name     = document.getElementById('prod-name').value.trim();
+  const price    = parseFloat(document.getElementById('prod-price').value);
   const category = document.getElementById('prod-category').value;
-  const stock = parseInt(document.getElementById('prod-stock').value) || 50;
-  const desc = document.getElementById('prod-desc').value.trim();
-  const sizes = document.getElementById('prod-sizes').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
-  const emoji = document.getElementById('prod-emoji').value.trim() || '🛍';
+  const stock    = parseInt(document.getElementById('prod-stock').value) || 50;
+  const desc     = document.getElementById('prod-desc').value.trim();
+  const sizes    = document.getElementById('prod-sizes').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
+  const emoji    = document.getElementById('prod-emoji').value.trim() || '🛍';
   const bestseller = document.getElementById('prod-bestseller').checked;
-  const badge = document.getElementById('prod-badge').value;
+  const badge    = document.getElementById('prod-badge').value;
   if(!name || !price || !category) { showToast('Fill required fields (Name, Price, Category)','error','✕'); return; }
   if(editingProductId) {
     const idx = products.findIndex(p => p.id === editingProductId);
@@ -5539,11 +5586,11 @@ function saveProduct() {
     }
     editingProductId = null;
     document.getElementById('add-product-title').textContent = 'ADD NEW PRODUCT';
-    showToast('Product updated!','success','✓');
+    showToast('Product updated! ✓','success','✓');
   } else {
     const newProduct = {id:'p'+Date.now(), name, price, category, description:desc, sizes:sizes.length?sizes:['One Size'], emoji, bestseller, badge:badge||null, stock};
     products.unshift(newProduct);
-    showToast('Product added!','success','✓');
+    showToast('Product added! ✓','success','✓');
   }
   saveProducts();
   clearProductForm();
@@ -5554,15 +5601,35 @@ function editProduct(id) {
   const p = products.find(x => x.id === id);
   if(!p) return;
   editingProductId = id;
-  document.getElementById('prod-name').value = p.name;
-  document.getElementById('prod-price').value = p.price;
-  document.getElementById('prod-category').value = p.category;
-  document.getElementById('prod-stock').value = p.stock || 50;
-  document.getElementById('prod-desc').value = p.description || '';
-  document.getElementById('prod-sizes').value = (p.sizes || []).join(',');
-  document.getElementById('prod-emoji').value = p.emoji || '';
+  document.getElementById('prod-name').value      = p.name;
+  document.getElementById('prod-price').value     = p.price;
+  document.getElementById('prod-category').value  = p.category;
+  document.getElementById('prod-stock').value     = p.stock || 50;
+  document.getElementById('prod-desc').value      = p.description || '';
+  document.getElementById('prod-sizes').value     = (p.sizes || []).join(',');
+  document.getElementById('prod-emoji').value     = p.emoji || '';
   document.getElementById('prod-bestseller').checked = p.bestseller || false;
-  document.getElementById('prod-badge').value = p.badge || '';
+  document.getElementById('prod-badge').value     = p.badge || '';
+  // Show current image in upload area
+  const wrap = document.getElementById('image-upload-preview-wrap');
+  if(wrap && p.emoji) {
+    const e = p.emoji.toString();
+    const isImg = e.startsWith('data:') || e.startsWith('http') || e.startsWith('/');
+    if(isImg) {
+      wrap.innerHTML = `
+        <div style="position:relative;display:inline-block">
+          <img src="${e}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #111">
+          <div style="margin-top:10px;font-size:12px;color:#38a169;font-weight:600">✓ Current photo</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Tap to change</div>
+        </div>`;
+    } else {
+      wrap.innerHTML = `
+        <div>
+          <div style="font-size:60px">${e}</div>
+          <div style="font-size:12px;color:#888;margin-top:8px">Tap to upload photo</div>
+        </div>`;
+    }
+  }
   document.getElementById('add-product-title').textContent = 'EDIT PRODUCT';
   showAdminSection('add-product');
   document.querySelector('[data-section="add-product"]').classList.add('active');
@@ -5579,42 +5646,56 @@ function deleteProduct(id) {
 
 function clearProductForm() {
   ['prod-name','prod-price','prod-stock','prod-desc','prod-sizes','prod-emoji'].forEach(id => {
-    document.getElementById(id).value = '';
+    const el = document.getElementById(id);
+    if(el) el.value = '';
   });
   document.getElementById('prod-category').value = '';
-  document.getElementById('prod-badge').value = '';
+  document.getElementById('prod-badge').value    = '';
   document.getElementById('prod-bestseller').checked = false;
-  document.getElementById('prod-stock').value = '50';
+  document.getElementById('prod-stock').value    = '50';
+  // Reset image upload area
+  const wrap = document.getElementById('image-upload-preview-wrap');
+  if(wrap) {
+    wrap.innerHTML = `
+      <div class="image-upload-icon">📷</div>
+      <div class="image-upload-text">Tap to choose photo from gallery</div>
+      <div class="image-upload-hint">JPG, PNG, WEBP supported</div>`;
+  }
+  const fileInput = document.getElementById('prod-image-file');
+  if(fileInput) fileInput.value = '';
   editingProductId = null;
 }
 
 // ============ INVOICE ============
 function generateInvoice(order) {
   if(!order) return;
-  const dateStr = new Date(order.date).toLocaleDateString('en-IN', {year:'numeric',month:'long',day:'numeric'});
-  const itemsHTML = order.items.map(item => `
-    <tr>
-      <td>${item.name}</td>
+  const dateStr = new Date(order.date).toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'});
+  const items = order.items || [];
+  const itemsHTML = items.map(item => {
+    const price = Number(item.price) || 0;
+    const qty = Number(item.qty) || 1;
+    return `<tr>
+      <td>${item.name || 'Product'}</td>
       <td style="text-align:center">${item.size || 'N/A'}</td>
-      <td style="text-align:center">${item.qty}</td>
-      <td style="text-align:right">₹${item.price.toLocaleString()}</td>
-      <td style="text-align:right">₹${(item.price*item.qty).toLocaleString()}</td>
-    </tr>
-  `).join('');
-  const subtotal = order.total;
+      <td style="text-align:center">${qty}</td>
+      <td style="text-align:right">₹${price.toLocaleString()}</td>
+      <td style="text-align:right">₹${(price * qty).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+  const subtotal = Number(order.total) || 0;
   document.getElementById('invoice-content').innerHTML = `
     <div class="invoice-print" id="print-area">
       <div class="invoice-header">
         <div>
           <div class="invoice-logo">SHOE<span>MOB</span></div>
-          <div class="invoice-tagline">Premium Footwear & Elite Mobile Accessories</div>
-          <div style="font-size:11px;color:#666;margin-top:6px">Mumbai, Maharashtra 400001<br>shoemobindia@gmail.com | +91 83204 71216 / +91 92229 55134</div>
+          <div class="invoice-tagline">PREMIUM FOOTWEAR &amp; ELITE MOBILE ACCESSORIES</div>
+          <div style="font-size:11px;color:#777;margin-top:5px;line-height:1.6">Mumbai, Maharashtra 400001<br>shoemobindia@gmail.com | +91 83204 71216 / +91 92229 55134</div>
         </div>
         <div class="invoice-meta">
           <div class="invoice-num">INVOICE</div>
-          <div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">#${order.id}</div>
+          <div style="font-size:15px;font-weight:700;color:#111;margin-top:3px">#${order.id}</div>
           <div class="invoice-date">Date: ${dateStr}</div>
-          <div style="margin-top:12px;font-size:12px;color:#888">Payment: ${order.paymentMethod || 'COD'}</div>
+          <div style="margin-top:8px;font-size:12px;color:#888">Payment: ${order.paymentMethod || 'COD'}</div>
         </div>
       </div>
       <div class="invoice-addresses">
@@ -5631,7 +5712,7 @@ function generateInvoice(order) {
           <p><strong>${order.customer?.name || 'Customer'}</strong></p>
           <p>${order.customer?.address || ''}</p>
           <p>${[order.customer?.city, order.customer?.state, order.customer?.zip].filter(Boolean).join(', ')}</p>
-          <p>${order.customer?.region || ''}</p>
+          <p>${order.customer?.region || 'India'}</p>
         </div>
       </div>
       <table class="invoice-table">
@@ -5640,7 +5721,7 @@ function generateInvoice(order) {
       </table>
       <div class="invoice-totals">
         <div class="invoice-total-row"><span>Subtotal</span><span>₹${subtotal.toLocaleString()}</span></div>
-        <div class="invoice-total-row"><span>Shipping</span><span style="color:#27ae60">FREE</span></div>
+        <div class="invoice-total-row"><span>Shipping</span><span style="color:#38a169;font-weight:600">FREE</span></div>
         <div class="invoice-total-row grand"><span>GRAND TOTAL</span><span>₹${subtotal.toLocaleString()}</span></div>
       </div>
       <div class="invoice-footer-note">
@@ -5655,32 +5736,66 @@ function generateInvoice(order) {
 }
 
 function printInvoice() {
-  const content = document.getElementById('print-area').innerHTML;
-  const w = window.open('','','width=800,height=900');
-  w.document.write(`<!DOCTYPE html><html><head><title>Invoice - SHOEMOB</title><style>
-    body { font-family: Georgia, serif; margin: 0; padding: 20px; background: white; }
-    * { box-sizing: border-box; }
-    .invoice-print { max-width: 700px; margin: 0 auto; padding: 40px; }
-    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #c9a84c; }
-    .invoice-logo { font-size: 32px; font-weight: 900; letter-spacing: 0.2em; color: #f0ede8; }
-    .invoice-logo span { color: #3b82f6; }
-    .invoice-tagline { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; }
-    .invoice-meta { text-align: right; }
-    .invoice-num { font-size: 20px; font-weight: 700; color: #3b82f6; }
-    .invoice-addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 28px; }
-    .invoice-addr-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #3b82f6; margin-bottom: 8px; font-weight: 700; }
-    .invoice-addr p { font-size: 13px; color: #333; margin: 0 0 3px; line-height: 1.6; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-    th { background: #0d0d0d; color: #3b82f6; padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
-    td { padding: 12px 14px; border-bottom: 1px solid #eee; font-size: 13px; color: #333; }
-    .invoice-totals { margin-left: auto; max-width: 260px; }
-    .invoice-total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #333; border-bottom: 1px solid #eee; }
-    .invoice-total-row.grand { font-size: 16px; font-weight: 700; color: #3b82f6; border-bottom: 2px solid #c9a84c; padding-top: 10px; margin-top: 6px; }
-    .invoice-footer-note { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #888; line-height: 1.7; }
-    @media print { body { padding: 0; } }
-  </style></head><body>${content}</body></html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 500);
+  const content = document.getElementById('print-area')?.innerHTML;
+  if(!content) { showToast('Invoice not ready','error','✕'); return; }
+
+  const css = `
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Georgia, serif; background: #fff; color: #111; }
+    .invoice-print { max-width: 720px; margin: 0 auto; padding: 40px; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 2px solid #c9a84c; }
+    .invoice-logo { font-family: Arial, sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 0.2em; color: #111; line-height: 1; }
+    .invoice-logo span { color: #c9a84c; }
+    .invoice-tagline { font-size: 9px; letter-spacing: 0.25em; color: #888; text-transform: uppercase; margin-top: 5px; }
+    .invoice-meta { text-align: right; flex-shrink: 0; margin-left: 16px; }
+    .invoice-num { font-size: 16px; font-weight: 700; color: #c9a84c; letter-spacing: 0.1em; }
+    .invoice-date { font-size: 12px; color: #666; margin-top: 3px; }
+    .invoice-addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #eee; }
+    .invoice-addr-title { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #c9a84c; margin-bottom: 6px; font-weight: 700; font-family: Arial, sans-serif; }
+    .invoice-addr p { font-size: 12px; color: #333; margin: 0 0 3px; line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th { background: #111; color: #c9a84c; padding: 9px 12px; text-align: left; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-family: Arial, sans-serif; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #333; }
+    .invoice-totals { margin-left: auto; max-width: 240px; border-top: 1px solid #eee; padding-top: 10px; }
+    .invoice-total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; color: #444; }
+    .invoice-total-row.grand { font-size: 14px; font-weight: 700; color: #111; border-top: 2px solid #c9a84c; padding-top: 8px; margin-top: 6px; }
+    .invoice-total-row.grand span:last-child { color: #c9a84c; }
+    .invoice-footer-note { margin-top: 24px; padding-top: 14px; border-top: 1px solid #eee; text-align: center; font-size: 11px; color: #888; line-height: 1.8; }
+    @media print { @page { margin: 1cm; } body { padding: 0; } }
+  `;
+
+  // Mobile-safe: use iframe inject method
+  try {
+    let iframe = document.getElementById('print-iframe');
+    if(!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'print-iframe';
+      iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:none;';
+      document.body.appendChild(iframe);
+    }
+    const iDoc = iframe.contentWindow.document;
+    iDoc.open();
+    iDoc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice - SHOEMOB</title><style>${css}</style></head><body>${content}</body></html>`);
+    iDoc.close();
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch(e) {
+        // Fallback: window.open
+        const w = window.open('', '_blank', 'width=850,height=1000');
+        if(w) {
+          w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice - SHOEMOB</title><style>${css}</style></head><body>${content}</body></html>`);
+          w.document.close();
+          setTimeout(() => w.print(), 400);
+        } else {
+          showToast('Please allow popups to print', 'warning', '🖨️');
+        }
+      }
+    }, 500);
+  } catch(e) {
+    showToast('Print error: ' + e.message, 'error', '✕');
+  }
 }
 
 // ============ INIT ============
